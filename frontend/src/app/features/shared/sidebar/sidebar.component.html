@@ -1,0 +1,58 @@
+<nav class="navbar sidebar navbar-expand-xl navbar-light">
+    <!-- Marque de la barre de navigation pour xl DÉBUT -->
+    <div class="d-flex align-items-center">
+        <a class="navbar-brand" href="index.html">
+            <img class="light-mode-item navbar-brand-item" src="assets/images/logo.jpg" alt="logo">
+            <img class="dark-mode-item navbar-brand-item" src="assets/images/logo-light.svg" alt="logo">
+        </a>
+    </div>
+    <!-- Marque de la barre de navigation pour xl FIN -->
+
+    <div class="offcanvas offcanvas-start flex-row custom-scrollbar h-100" data-bs-backdrop="true" tabindex="-1" id="offcanvasSidebar">
+        <div class="offcanvas-body sidebar-content d-flex flex-column pt-4">
+
+            <!-- Menu de la barre latérale DÉBUT -->
+            <ul class="navbar-nav flex-column" id="navbar-sidebar">
+                <!-- Élément du menu -->
+                <li class="nav-item"><a href="admin-dashboard.html" class="nav-link">Tableau de bord</a></li>
+
+                <!-- Titre -->
+                <li class="nav-item ms-2 my-2">Pages</li>
+
+                <!-- Élément du menu -->
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="collapse" href="#collapseguest" role="button" aria-expanded="true" aria-controls="collapseguest">
+                        Utilisateurs
+                    </a>
+                    <!-- Sous-menu -->
+                    <ul class="nav collapse flex-column show" id="collapseguest" data-bs-parent="#navbar-sidebar">
+                        <li class="nav-item"> <a class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" routerLink="/home/users" >Liste des utilisateurs</a></li>
+                        <li class="nav-item"> <a class="nav-link" routerLinkActive="active" routerLink="/home/users/add">
+                            Ajouter un utilisateur
+                        </a></li>
+                    </ul>
+                </li>
+
+                <!-- Élément du menu -->
+                <li class="nav-item">
+                    <a class="nav-link" routerLink="/home/users/stat" routerLinkActive="active">Statistiques</a>
+                </li>
+
+                <!-- Élément du menu -->
+            </ul>
+            <!-- Menu de la barre latérale FIN -->
+
+            <!-- Pied de page de la barre latérale DÉBUT -->
+            <div class="d-flex align-items-center justify-content-between text-primary-hover mt-auto p-3">
+                <a class="h6 fw-light mb-0 text-body" href="sign-in.html" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Se déconnecter">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Se déconnecter
+                </a>
+                <a class="h6 mb-0 text-body" href="admin-settings.html" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Paramètres">
+                    <i class="bi bi-gear-fill"></i>
+                </a>
+            </div>
+            <!-- Pied de page de la barre latérale FIN -->
+
+        </div>
+    </div>
+</nav>

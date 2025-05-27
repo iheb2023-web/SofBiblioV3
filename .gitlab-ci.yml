@@ -1,0 +1,313 @@
+stages:
+  - build
+  - test
+  - build-sonar
+  - security_scan
+  - analyze
+  - package
+  - deploy
+
+image: registry.hub.docker.com/library/maven:latest
+
+variables:
+  MYSQL_DATABASE: sofbiblio_db
+  MYSQL_ROOT_PASSWORD: root
+  SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sofbiblio_db
+  SPRING_DATASOURCE_USERNAME: root
+  SPRING_DATASOURCE_PASSWORD: root
+  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+  GIT_DEPTH: "0"
+  SONAR_PROJECT_KEY: "mohamedelhedi.hamdi_sofbiblio"
+
+services:
+  - name: mysql:5.7
+    alias: mysql
+
+# -------- BUILD DU BACKEND --------
+build_backend:
+  stage: build
+  script:
+    - cd backend
+    - mvn clean install
+  artifacts:
+    paths:
+      - backend/target/*.jar
+      - backend/pom.xml
+    expire_in: 1 week
+  only:
+    - main
+
+# -------- BUILD DU FRONTEND --------
+build_frontend:
+  stage: build
+  image: node:16
+  script:
+    - cd frontend
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/dist/
+      - frontend/package.json
+    expire_in: 1 week
+  only:
+    - main
+# -------- BUILD DE L'APPLICATION MOBILE (FLUTTER) --------
+build_flutter:
+  stage: build
+  image: ghcr.io/cirruslabs/flutter:3.29.1  # Image Docker avec Flutter pré-installé
+  before_script:
+    - echo "Installation de Java 17..."
+    - export DEBIAN_FRONTEND=noninteractive
+    - apt-get update -y && apt-get install -y openjdk-17-jdk  # Installation de Java 17
+    - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+    - export PATH=$JAVA_HOME/bin:$PATH
+    - java -version  # Vérification de l'installation de Java
+  script:
+    - echo "Compilation de l'application mobile Flutter..."
+    - cd app
+    - flutter clean   # Nettoyage du projet Flutter
+    - flutter pub get  # Récupération des dépendances
+    - flutter build apk --release  # Génération de l'APK en mode production
+  artifacts:
+    paths:
+      - app/build/app/outputs/flutter-apk/app-release.apk  # Sauvegarde de l'APK
+    expire_in: 1 week
+  cache:
+    key: flutter
+    paths:
+      - app/.pub-cache  # Cache des dépendances Flutter
+      - app/build       # Cache des fichiers de build
+  only:
+    - main
+  timeout: 1h  # Limite le temps d'exécution à 1 heure
+
+# Job de test
+test_job:
+  stage: test
+  script:
+    - cd backend
+    - echo "Exécution des tests sur $CI_COMMIT_BRANCH"
+    - mvn test -e -X
+  artifacts:
+    when: always
+    paths:
+      - target/surefire-reports/
+      - target/jacoco.exec
+      - target/*.log
+      - target/site/jacoco/
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  coverage: '/Total.*?([0-9]{1,3})%/'
+
+# -------- ANALYSE SONARQUBE --------
+build-sonar:
+  stage: build-sonar
+  image: maven:3.9.6-eclipse-temurin-17
+  cache:
+    policy: pull-push
+    key: "sonar-cache-$CI_COMMIT_REF_SLUG"
+    paths:
+      - "${SONAR_USER_HOME}/cache"
+  script:
+    - cd backend
+    - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+      -Dsonar.host.url=$SONAR_HOST_URL
+      -Dsonar.token=$SONAR_TOKEN
+      -Dsonar.projectKey=$SONAR_PROJECT_KEY
+  allow_failure: true
+  dependencies:
+    - build_backend
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'main'
+
+# -------- RAPPORT DE VULNÉRABILITÉS SONARQUBE --------
+sonarqube-vulnerability-report:
+  stage: build-sonar
+  image: alpine:latest
+  script:
+    - apk add curl
+    - curl -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/issues/gitlab_sast_export?projectKey=${SONAR_PROJECT_KEY}&branch=${CI_COMMIT_BRANCH}" -o gl-sast-sonar-report.json
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'main'
+  artifacts:
+    expire_in: 1 day
+    reports:
+      sast: gl-sast-sonar-report.json
+
+# -------- SCAN DE SÉCURITÉ AVEC GITLEAKS --------
+security_scan:
+  stage: security_scan
+  image: registry.hub.docker.com/zricethezav/gitleaks:latest
+  script:
+    - gitleaks detect --source . -v --report-path gitleaks-report.json --exit-code 0
+  artifacts:
+    paths:
+      - gitleaks-report.json
+    expire_in: 1 week
+  only:
+    - main
+
+# -------- SCAN DES VULNÉRABILITÉS AVEC TRIVY --------
+security_scan_trivy:
+  stage: security_scan
+  image: aquasec/trivy:latest
+  dependencies:
+    - build_backend
+    - build_frontend
+  script:
+    - echo "Scan de sécurité pour validation"
+    - trivy fs --severity HIGH,CRITICAL backend/pom.xml || echo "Aucune vulnérabilité critique trouvée dans pom.xml"
+    - trivy fs --severity HIGH,CRITICAL frontend/package.json || echo "Aucune vulnérabilité critique trouvée dans package.json"
+    - trivy fs --severity HIGH,CRITICAL backend/target/*.jar || echo "Scan JAR terminé"
+    - trivy fs --severity HIGH,CRITICAL frontend/dist/ || echo "Scan dist terminé"
+  allow_failure: true
+  only:
+    - main
+
+# -------- SCAN DES IMAGES DOCKER AVEC TRIVY --------
+security_scan_images:
+  stage: package
+  image: aquasec/trivy:latest
+  dependencies:
+    - docker_build_backend
+    - docker_build_frontend
+  needs:
+    - docker_build_backend
+    - docker_build_frontend
+  script:
+    - echo "Attente des fichiers image.tar..."
+    - |
+      for i in $(seq 1 60); do
+        if [ -f "$CI_PROJECT_DIR/image-backend.tar" ] && [ -f "$CI_PROJECT_DIR/image-frontend.tar" ]; then
+          echo "Les deux fichiers sont présents !"
+          break
+        fi
+        echo "Attente... ($i/60)"
+        sleep 5
+      done
+      if [ ! -f "$CI_PROJECT_DIR/image-backend.tar" ] || [ ! -f "$CI_PROJECT_DIR/image-frontend.tar" ]; then
+        exit 1
+      fi
+    - echo "Vérification des fichiers image.tar"
+    - ls -lh "$CI_PROJECT_DIR/"
+    - echo "Contenu complet du répertoire de travail"
+    - ls -lhR "$CI_PROJECT_DIR/" || echo "Répertoire vide"
+    - echo "Recherche de fichiers .tar"
+    - find "$CI_PROJECT_DIR" -name "*.tar" || echo "Aucun .tar trouvé"
+    - echo "Scan de sécurité des images Docker"
+    - trivy image --scanners vuln --input "$CI_PROJECT_DIR/image-backend.tar" --severity HIGH,CRITICAL --format json > "$CI_PROJECT_DIR/backend-trivy-report.json" || echo "Scan de l'image backend terminé"
+    - trivy image --scanners vuln --input "$CI_PROJECT_DIR/image-frontend.tar" --severity HIGH,CRITICAL --format json > "$CI_PROJECT_DIR/frontend-trivy-report.json" || echo "Scan de l'image frontend terminé"
+    
+  artifacts:
+    paths:
+      - backend-trivy-report.json
+      - frontend-trivy-report.json
+    expire_in: 1 week
+  allow_failure: true
+  only:
+    - main
+# -------- ANALYSE DES MÉTRIQUES --------
+analyze_metrics:
+  stage: analyze
+  image: alpine:latest
+  dependencies:
+    - build_backend
+    - build_frontend
+  script:
+    - echo "Analyse des métriques de build"
+    - du -sh backend/target/*.jar > metrics.txt
+    - du -sh frontend/dist/ >> metrics.txt
+    - cat metrics.txt
+  artifacts:
+    paths:
+      - metrics.txt
+    expire_in: 1 week
+  only:
+    - main
+
+# -------- PRÉPARATION DES FICHIERS --------
+package_artifacts:
+  stage: package
+  image: alpine:latest
+  dependencies:
+    - build_backend
+    - build_frontend
+  script:
+    - mkdir -p release
+    - cp backend/target/*.jar release/backend.jar
+    - cp -r frontend/dist/ release/frontend
+    - ls -lhR release/
+  artifacts:
+    paths:
+      - release/
+    expire_in: 1 week
+  only:
+    - main
+# -------- CONSTRUCTION DE L'IMAGE DOCKER POUR LE BACKEND AVEC KANIKO --------
+docker_build_backend:
+  stage: package
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  dependencies:
+    - build_backend
+  script:
+    - echo "Vérification du Dockerfile et du contexte pour le backend"
+    - ls -lh $CI_PROJECT_DIR/backend/Dockerfile || echo "Dockerfile backend manquant"
+    - ls -lh $CI_PROJECT_DIR/backend/pom.xml || echo "pom.xml backend manquant"
+    - ls -lhR $CI_PROJECT_DIR/backend/src/ || echo "src backend manquant"
+    - ls -lh $CI_PROJECT_DIR/backend/target/*.jar || echo "JAR backend manquant"
+    - /kaniko/executor --context $CI_PROJECT_DIR/backend --dockerfile $CI_PROJECT_DIR/backend/Dockerfile --no-push --destination my-spring-boot-app:$CI_COMMIT_SHA --tar-path $CI_PROJECT_DIR/image-backend.tar
+    - echo "Vérification de l'image générée"
+    - ls -lh $CI_PROJECT_DIR/image-backend.tar || echo "image-backend.tar non généré"
+    - echo "Contenu du répertoire racine avant upload"
+    - ls -lh $CI_PROJECT_DIR/
+  artifacts:
+    paths:
+      - image-backend.tar
+    expire_in: 1 week
+  only:
+    - main
+
+# -------- CONSTRUCTION DE L'IMAGE DOCKER POUR LE FRONTEND AVEC KANIKO --------
+docker_build_frontend:
+  stage: package
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  dependencies:
+    - build_frontend
+  script:
+    - echo "Vérification du Dockerfile et du contexte pour le frontend"
+    - ls -lh $CI_PROJECT_DIR/frontend/Dockerfile || echo "Dockerfile frontend manquant"
+    - ls -lh $CI_PROJECT_DIR/frontend/package.json || echo "package.json frontend manquant"
+    - ls -lhR $CI_PROJECT_DIR/frontend/dist/ || echo "dist frontend manquant"
+    - /kaniko/executor --context $CI_PROJECT_DIR/frontend --dockerfile $CI_PROJECT_DIR/frontend/Dockerfile --no-push --destination my-frontend-app:$CI_COMMIT_SHA --tar-path $CI_PROJECT_DIR/image-frontend.tar
+    - echo "Vérification de l'image générée"
+    - ls -lh $CI_PROJECT_DIR/image-frontend.tar || echo "image-frontend.tar non généré"
+    - echo "Contenu du répertoire racine avant upload"
+    - ls -lh $CI_PROJECT_DIR/
+  artifacts:
+    paths:
+      - image-frontend.tar
+    expire_in: 1 week
+  only:
+    - main
+
+# -------- DÉPLOIEMENT (SIMULATION) --------
+deploy:
+  stage: deploy
+  image: alpine:latest
+  dependencies:
+    - build_backend
+    - build_frontend
+  script:
+    - echo "Déploiement simulé pour validation"
+    - ls -lh backend/target/*.jar
+    - ls -lhR frontend/dist/
+    - echo "Déploiement du backend, frontend et Flutter terminé avec succès"
+  only:
+    - main

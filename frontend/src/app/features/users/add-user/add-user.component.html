@@ -1,0 +1,114 @@
+
+
+
+<!-- add-user.component.html -->
+<div class="col-lg-8 offset-lg-2 col-xl-9 offset-xl-1">
+    <div class="d-grid mb-0 d-lg-none w-100">
+        <button class="btn btn-primary mb-4" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar" aria-controls="offcanvasSidebar">
+            <i class="fas fa-sliders-h"></i> Menu
+        </button>
+    </div>
+
+    <div class="vstack gap-4">
+        <div class="card border">
+            <div class="card-header border-bottom">
+                <h4 class="card-header-title">User Information</h4>
+            </div>
+
+            <div class="card-body">
+                <div class="col-12">
+                    <label class="form-label">Upload Profile Photo <span class="text-danger">*</span></label>
+                    <div class="d-flex align-items-center">
+                        <label class="position-relative me-4" for="uploadfile-1" title="Replace this pic">
+                            <span class="avatar avatar-xl">
+                                <img id="uploadfile-1-preview"
+                                     class="avatar-img rounded-circle border border-white border-3 shadow"
+                                     [src]="imagePreview || 'assets/images/avatar/02.jpg'" 
+                                     alt="Profile Picture">
+                            </span>
+                        </label>
+                        <label class="btn btn-sm btn-primary-soft mb-0" for="uploadfile-1">
+                            Upload
+                        </label>
+                        <input id="uploadfile-1" class="form-control d-none" type="file" accept="image/*" (change)="onFileSelected($event)">
+                    </div>
+                </div>
+                
+                
+                
+                
+              
+                <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="row g-3">
+                    
+
+                    <div class="col-md-6">
+                        <label class="form-label">Firstname<span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" formControlName="firstname" placeholder="Enter Firstname">
+                        <div *ngIf="userForm.get('firstname')?.invalid && userForm.get('firstname')?.touched" class="text-danger">
+                            Firstname is required and can only contain letters and spaces.
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Lastname<span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" formControlName="lastname" placeholder="Enter Lastname">
+                        <div *ngIf="userForm.get('lastname')?.invalid && userForm.get('lastname')?.touched" class="text-danger">
+                            Lastname is required and can only contain letters and spaces.
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Email address<span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" formControlName="email" placeholder="Enter email">
+                        <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched" class="text-danger">
+                            Valid email is required.
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Mobile number<span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" formControlName="number" placeholder="Enter mobile number">
+                        <div *ngIf="userForm.get('number')?.invalid && userForm.get('number')?.touched" class="text-danger">
+                            Mobile number is required.
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Job Title<span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" formControlName="job" placeholder="Enter Job title">
+                        <div *ngIf="userForm.get('job')?.invalid && userForm.get('job')?.touched" class="text-danger">
+                            Job Title is required.
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Role<span class="text-danger">*</span></label>
+                        <select class="form-select" formControlName="role">
+                            <option value="">Select Role</option>
+                            <option value="Administrateur">
+                            Admin
+                            </option>
+                            <option value="Collaborateur">
+                                Collaborator
+                        </select>
+                        <div *ngIf="userForm.get('role')?.invalid && userForm.get('role')?.touched" class="text-danger">
+                            Role is required.
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Date of Birth<span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" formControlName="birthday" placeholder="Enter date of birth">
+                        <div *ngIf="userForm.get('birthday')?.invalid && userForm.get('birthday')?.touched" class="text-danger">
+                            Date of birth is required.
+                        </div>
+                    </div>
+
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-primary mb-0" [disabled]="userForm.invalid">Add user</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
