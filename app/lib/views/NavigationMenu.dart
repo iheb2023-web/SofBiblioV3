@@ -6,22 +6,34 @@ import 'package:get/get.dart';
 import 'package:app/views/profile/profile.dart';
 
 class NavigationMenu extends StatefulWidget {
-  const NavigationMenu({super.key});
+  final int initialIndex;
+  
+  const NavigationMenu({
+    super.key,
+    this.initialIndex = 0,
+  });
+
 
   @override
   State<NavigationMenu> createState() => _NavigationMenuState();
 }
+
 
 class _NavigationMenuState extends State<NavigationMenu> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
     const AccueilPage(),
-    // Center(child: Text('explore'.tr)),
     const ExplorePage(),
     const MaBiblioPage(),
     const ProfilePage(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex; // ⚠️ C’est ici que tu utilises la valeur passée
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -311,7 +311,57 @@ class AuthController extends GetxController {
     return currentUser.value?.email;
   }
 
-  Future<String?> uploadProfileImage(File image) async {}
+  Future<String?> uploadProfileImage(File image) async {
+  try {
+    isLoading.value = true;
+    errorMessage.value = '';
+
+    final imageUrl = await _authService.uploadImage(image);
+
+    if (imageUrl == null || imageUrl.isEmpty) {
+      throw Exception('L\'URL de l\'image est vide');
+    }
+
+    // Mettre à jour l'utilisateur
+    final updatedUser = currentUser.value!.copyWith(image: imageUrl);
+    await _updateUserAndSession(updatedUser);
+
+    _showSuccessSnackbar('Photo de profil mise à jour');
+    return imageUrl;
+  } catch (e) {
+    errorMessage.value = 'Échec de la mise à jour: ${e.toString()}';
+    _showErrorSnackbar('Échec de l\'upload de l\'image: ${e.toString()}');
+    return null;
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+// Méthodes privées pour mieux organiser le code
+Future<void> _updateUserAndSession(User user) async {
+  currentUser.value = user;
+  await _storageService.saveUserSession(user.toJson());
+}
+
+void _showSuccessSnackbar(String message) {
+  Get.snackbar(
+    'Succès',
+    message,
+    snackPosition: SnackPosition.BOTTOM,
+    backgroundColor: Colors.green,
+    colorText: Colors.white,
+  );
+}
+
+void _showErrorSnackbar(String message) {
+  Get.snackbar(
+    'Erreur',
+    message,
+    snackPosition: SnackPosition.BOTTOM,
+    backgroundColor: Colors.red,
+    colorText: Colors.white,
+  );
+}
 
   Future<User?> getUserById(int id) async {
     try {

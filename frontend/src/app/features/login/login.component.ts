@@ -24,7 +24,7 @@ export class LoginComponent {
   ) {}
 
 
-  
+
 
   authenticate() {
     this.authService.login(this.authRequest).subscribe({

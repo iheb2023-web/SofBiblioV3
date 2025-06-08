@@ -44,7 +44,7 @@ class Book {
       title: json['title'] ?? '',
       author: json['author'] ?? '',
       description: json['description'] ?? '',
-      coverUrl: json['coverUrl'] ?? '',
+      coverUrl: json['coverUrl'] ?? json['cover_url'] ?? '',
       publishedDate: json['publishedDate'] ?? '',
       isbn: json['isbn'] ?? '',
       category: json['category'] ?? '',

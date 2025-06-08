@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @RestController
 @RequestMapping("/books")
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class BookController {
     private final IBookService bookService;
@@ -107,6 +108,12 @@ public class BookController {
     public ResponseEntity<Book> updateBookW(@PathVariable Long id, @RequestBody BookUpdateDto book) { //NOSONAR
         Book updatedBook = bookService.updateBook(id, book);
         return ResponseEntity.ok(updatedBook);
+    }
+
+    @GetMapping("/recommendations/{userId}")
+    public ResponseEntity<List<Book>> getRecommendedBooks(@PathVariable Long userId) {
+        List<Book> books = bookService.findBooksByUserPreferences(userId);
+        return ResponseEntity.ok(books);
     }
 
 }

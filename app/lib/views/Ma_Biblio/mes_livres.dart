@@ -285,11 +285,11 @@ class MesLivresPage extends GetView<ThemeController> {
                       ),
                   icon: const Icon(
                     Icons.visibility_outlined,
-                    size: 16,
+                    size: 14,
                     color: Colors.grey,
                   ),
                   label: Text(
-                    'Consulter les demandes',
+                    'Demandes',
                     style: TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                 ),

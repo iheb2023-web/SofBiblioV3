@@ -1,0 +1,2 @@
+D:/3eme DSI PFE/sofrecom/sofbiblio/app/android/app/.cxx/Debug/6t3d1u42/x86_64/CMakeFiles/edit_cache.dir
+D:/3eme DSI PFE/sofrecom/sofbiblio/app/android/app/.cxx/Debug/6t3d1u42/x86_64/CMakeFiles/rebuild_cache.dir

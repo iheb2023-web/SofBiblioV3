@@ -1,4 +1,5 @@
 import 'package:app/controllers/review_controller.dart';
+import 'package:app/views/NavigationMenu.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:app/models/book.dart';
@@ -46,9 +47,13 @@ class BookSection extends StatelessWidget {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {}, // View all action
+                  onPressed: () {
+    Get.offAll(() => const NavigationMenu(initialIndex: 1)); // ⚠️ Remplace toute la pile
+
+                 }, // View all action
                   child: Text('view_all'.tr),
                 ),
+                
               ],
             ),
           ),

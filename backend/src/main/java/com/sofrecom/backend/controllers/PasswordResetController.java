@@ -13,6 +13,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @RequiredArgsConstructor
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/password-reset")
 public class PasswordResetController {
 

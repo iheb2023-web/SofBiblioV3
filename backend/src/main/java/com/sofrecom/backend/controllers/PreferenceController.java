@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/preferences")
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class PreferenceController {
     private final IPreferenceService preferenceService;

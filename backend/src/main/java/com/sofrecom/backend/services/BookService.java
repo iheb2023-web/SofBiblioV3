@@ -116,5 +116,9 @@ public class BookService implements IBookService {
         return this.bookRepository.save(book);
     }
 
+    public List<Book> findBooksByUserPreferences(Long userId) {
+        return bookRepository.findBooksMatchingUserPreferences(userId);
+    }
+
 
 }

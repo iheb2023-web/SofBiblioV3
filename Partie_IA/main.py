@@ -12,7 +12,7 @@ app = Flask(__name__)
 #AIzaSyB-tPq1oFJFmLkLgt5Baf6prtGZyyJzA3E
 
 os.environ["GOOGLE_API_KEY"] = "AIzaSyALbVJW9lf4zi5NMkAWOFusTq7YMdy03ME"
-db = SQLDatabase.from_uri("mysql+pymysql://root@localhost/sofbiblio_db")
+db = SQLDatabase.from_uri("mysql+pymysql://root:yNrXkjOdFVPfNoUqmxdGBlYWCuEfEOVV@caboose.proxy.rlwy.net:14050/railway")
 llm = GoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
 toolkit = SQLDatabaseToolkit(llm=llm, db=db)
 agent = initialize_agent(
@@ -32,7 +32,13 @@ def chat():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    #app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
+
+
+
+
+
 
 
 

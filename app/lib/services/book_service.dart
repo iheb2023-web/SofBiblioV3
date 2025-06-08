@@ -70,10 +70,8 @@ class BookService {
     } catch (e) {
       if (response != null) {
         print('Error response headers: ${response.headers}');
-        print('Error response body: ${response.body}');
       }
       print('Error fetching books with owner email: $e');
-      print("email de user connecte est : $email");
       return [];
     }
   }
@@ -239,4 +237,46 @@ class BookService {
       return null;
     }
   }
+
+
+
+
+
+static Future<List<Book>> getPersonalizedRecommendations(int userId) async {
+  http.Response? response;
+  try {
+    final headers = {
+      ...await AuthService.getHeaders(),
+      'Accept-Charset': 'utf-8',
+    };
+    
+    final uri = Uri.parse('${AppConfig.recommandationIa}?id_user=$userId');
+    response = await http.get(uri, headers: headers);
+    if (response.statusCode == 200) {
+      try {
+        final String decodedBody = utf8.decode(response.bodyBytes);
+        final List<dynamic> data = json.decode(decodedBody);
+        final books = data.map((json) => Book.fromJson(json)).toList();
+        return books;
+      } on FormatException {
+        final String decodedBody = latin1.decode(response.bodyBytes);
+        final List<dynamic> data = json.decode(decodedBody);
+        final books = data.map((json) => Book.fromJson(json)).toList();
+        return books;
+      }
+    } else if (response.statusCode == 404) {
+      return [];
+    } else {
+      throw Exception(
+        'Échec du chargement des recommandations (Status: ${response.statusCode})',
+      );
+    }
+  } catch (e) {
+    print('Erreur complète: $e');
+    if (response != null) {
+      print('Error response body: ${response.body}');
+    }
+    return [];
+  }
+}
 }

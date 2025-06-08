@@ -10,8 +10,10 @@ public class SocketIOConfig {
     @Bean
     public SocketIOServer socketIOServer() {
         Configuration config = new Configuration();
-        config.setHostname("localhost");
+        //config.setHostname("localhost");
+        config.setHostname("0.0.0.0");
         config.setPort(9092); // Port for Socket.IO
+        config.setOrigin("*"); // autoriser toutes les origines
         return new SocketIOServer(config);
     }
 }

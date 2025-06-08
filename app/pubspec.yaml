@@ -47,6 +47,9 @@ dependencies:
   rxdart: ^0.27.7
   flutter_local_notifications: ^19.1.0
   google_generative_ai: ^0.4.7
+  mime_type: ^1.0.0
+  http_parser: ^4.0.2
+
 
 
 
@@ -114,10 +117,15 @@ flutter:
 
 # Configuration des icônes (à la racine, pas sous flutter:)
 
+# flutter_icons:
+#   android: true
+#   ios: true
+#   image_path: "assets/images/ouverture.png"
+#   adaptive_icon_background: "#FFFFFF"  # ou la couleur de votre choix
+#   adaptive_icon_foreground: "assets/images/ouverture.png"
+#   remove_alpha_ios: true
+
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/images/ouverture.png"
-  adaptive_icon_background: "#FFFFFF"  # ou la couleur de votre choix
-  adaptive_icon_foreground: "assets/images/ouverture.png"
-  remove_alpha_ios: true
+  image_path: "assets/icons/app_icon2.png"

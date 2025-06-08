@@ -1,0 +1,2 @@
+D:/3eme DSI PFE/sofrecom/sofbiblio/app/android/app/.cxx/RelWithDebInfo/4s1t6rt3/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/3eme DSI PFE/sofrecom/sofbiblio/app/android/app/.cxx/RelWithDebInfo/4s1t6rt3/armeabi-v7a/CMakeFiles/rebuild_cache.dir

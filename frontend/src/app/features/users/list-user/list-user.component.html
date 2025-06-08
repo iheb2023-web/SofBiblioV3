@@ -1,36 +1,35 @@
 <div class="page-content-wrapper p-xxl-4">
- 
-  <!-- Title -->
+  <!-- Titre -->
   <div class="row">
     <div class="col-12 mb-4 mb-sm-5">
       <div class="d-sm-flex justify-content-between align-items-center">
-        <h1 class="h3 mb-3 mb-sm-0">User List</h1>
+        <h1 class="h3 mb-3 mb-sm-0">Liste des utilisateurs</h1>
         <div class="d-flex gap-2">
-          <!-- View Toggle Buttons -->
+          <!-- Boutons de changement de vue -->
           <div class="btn-group" role="group">
             <button type="button" class="btn"
               [ngClass]="{'btn-primary': viewMode === 'table', 'btn-outline-primary': viewMode !== 'table'}"
               (click)="toggleView('table')">
-              <i class="bi bi-list-ul me-1"></i>Table View
+              <i class="bi bi-list-ul me-1"></i>Vue en tableau
             </button>
             <button type="button" class="btn"
               [ngClass]="{'btn-primary': viewMode === 'card', 'btn-outline-primary': viewMode !== 'card'}"
               (click)="toggleView('card')">
-              <i class="bi bi-grid-3x3-gap me-1"></i>Card View
+              <i class="bi bi-grid-3x3-gap me-1"></i>Vue en cartes
             </button>
           </div>
         </div>
       </div>
     </div>
   </div>
- 
-  <!-- Filters START -->
+
+  <!-- Filtres -->
   <div class="row g-4 align-items-center">
-    <!-- Search -->
+    <!-- Recherche -->
     <div class="col-md-6 col-lg-3">
       <form class="rounded position-relative">
-        <input class="form-control bg-transparent" type="search" placeholder="Search"
-               aria-label="Search" [value]="searchTerm" (input)="onSearch($event)">
+        <input class="form-control bg-transparent" type="search" placeholder="Rechercher"
+               aria-label="Rechercher" [value]="searchTerm" (input)="onSearch($event)">
         <button *ngIf="searchTerm" 
                 class="bg-transparent p-2 position-absolute top-50 start-0 translate-middle-y border-0 ms-3"
                 type="button" (click)="clearSearch()">
@@ -41,71 +40,138 @@
         </button>
       </form>
     </div>
-    
-    <!-- Search status -->
-   
-  </div>
-  <!-- Filters END -->
- 
-  <!-- No results message -->
-  <div *ngIf="users.length === 0" class="alert alert-warning mt-4 text-center">
-    <i class="bi bi-exclamation-triangle me-1"></i>
-    No users found{{ searchTerm ? ' matching "' + searchTerm + '"' : '' }}
   </div>
 
-  <!-- TABLE VIEW -->
+  <!-- Aucun résultat -->
+  <div *ngIf="users.length === 0" class="alert alert-warning mt-4 text-center">
+    <i class="bi bi-exclamation-triangle me-1"></i>
+    Aucun utilisateur trouvé{{ searchTerm ? ' correspondant à "' + searchTerm + '"' : '' }}
+  </div>
+
+  <!-- Vue tableau -->
   <div *ngIf="viewMode === 'table' && users.length > 0" class="card shadow mt-5">
-    <!-- Card body START -->
     <div class="card-body">
-      <!-- Table head -->
       <div class="bg-light rounded p-3 d-none d-lg-block">
         <div class="row row-cols-7 g-4">
-          <div class="col"><h6 class="mb-0">User</h6></div>
+          <div class="col"><h6 class="mb-0">Utilisateur</h6></div>
           <div class="col"><h6 class="mb-0">Email</h6></div>
-          <div class="col"><h6 class="mb-0">Job</h6></div>
+          <div class="col"><h6 class="mb-0">Poste</h6></div>
           <div class="col"><h6 class="mb-0">Action</h6></div>
         </div>
       </div>
- 
-      <!-- Table data -->
+
       <div *ngFor="let user of users" class="row row-cols-xl-7 align-items-lg-center border-bottom g-4 px-2 py-4">
         <div class="col">
           <div class="d-flex align-items-center">
-            <!-- Avatar -->
             <div class="avatar avatar-xs flex-shrink-0">
               <img class="avatar-img rounded-circle"
-              [src]="user.image ? user.image : 'assets/images/avatar/10.jpg'"
-              alt="avatar">
+              [src]="user.image ? user.image : 'assets/images/avatar/10.jpg'" alt="avatar">
             </div>
-            <!-- Info -->
             <div class="ms-2">
               <h6 class="mb-0 fw-light">{{user.firstname}} {{user.lastname}}</h6>
             </div>
           </div>
         </div>
- 
+
         <div class="col">
           <h6 class="mb-0 fw-normal">{{user.email}}</h6>
         </div>
- 
+
         <div class="col">
           <h6 class="mb-0 fw-normal">{{user.job}}</h6>
         </div>
- 
+
         <div class="col">
-          <a (click)="navToDisplay(user.id)" class="btn btn-sm btn-light mb-0">View</a>
-          <button (click)="navToUpdate(user.id)" class="btn btn-sm btn-primary mb-0">Update</button>
+          <a (click)="navToDisplay(user.id)" class="btn btn-sm btn-light mb-0">Voir</a>
+          <button (click)="navToUpdate(user.id)" class="btn btn-sm btn-primary mb-0">Modifier</button>
         </div>
       </div>
     </div>
-    <!-- Card body END -->
- 
-    <!-- Card footer START -->
+
     <div class="card-footer pt-0">
-      <!-- Pagination and content -->
       <div class="d-sm-flex justify-content-sm-between align-items-sm-center">
-        <!-- Content -->
-        <p class="mb-sm-0 text-center text-sm-start">Showing {{(currentPage - 1) * pageSize + 1}} to {{(currentPage - 1) * pageSize + users.length}} of {{totalEntries}} entries</p>
+        <p class="mb-sm-0 text-center text-sm-start">Affichage de {{(currentPage - 1) * pageSize + 1}} à {{(currentPage - 1) * pageSize + users.length}} sur {{totalEntries}} entrées</p>
+
+        <nav class="mb-sm-0 d-flex justify-content-center" aria-label="navigation">
+          <ul class="pagination pagination-sm pagination-primary-soft mb-0">
+            <li class="page-item" [class.disabled]="isPrevDisabled">
+              <a class="page-link" href="#" (click)="onPageChange(currentPage - 1); $event.preventDefault()">Précédent</a>
+            </li>
+            <li class="page-item" *ngIf="currentPage > 2">
+              <a class="page-link" href="#" (click)="onPageChange(1); $event.preventDefault()">1</a>
+            </li>
+            <li class="page-item disabled" *ngIf="currentPage > 3">
+              <a class="page-link" href="#">...</a>
+            </li>
+            <li class="page-item active">
+              <a class="page-link" href="#">{{ currentPage }}</a>
+            </li>
+            <li class="page-item disabled" *ngIf="currentPage < totalPages - 2">
+              <a class="page-link" href="#">...</a>
+            </li>
+            <li class="page-item" *ngIf="currentPage < totalPages - 1">
+              <a class="page-link" href="#" (click)="onPageChange(totalPages); $event.preventDefault()">{{ totalPages }}</a>
+            </li>
+            <li class="page-item" [class.disabled]="isNextDisabled">
+              <a class="page-link" href="#" (click)="onPageChange(currentPage + 1); $event.preventDefault()">Suivant</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vue cartes -->
+  <div *ngIf="viewMode === 'card' && users.length > 0" class="mt-5">
+    <div class="row g-4">
+      <div *ngFor="let user of users" class="col-sm-6 col-lg-4 col-xl-4">
+        <div class="card shadow h-100">
+          <div class="card-header d-flex justify-content-between align-items-center border-0 pb-0">
+            <div class="dropdown">
+              <a href="#" class="btn btn-sm btn-light btn-round mb-0" role="button" id="dropdownShare" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-three-dots fs-5"></i>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownShare">
+                <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square me-2"></i>Modifier</a></li>
+                <li><a class="dropdown-item" href="#"><i class="bi bi-trash me-2"></i>Supprimer</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card-body text-center position-relative pt-0">
+            <div class="avatar avatar-xl mt-3">
+              <img class="avatar-img rounded-circle border border-white border-3"
+                   [src]="user.image ? user.image : 'assets/images/avatar/10.jpg'" alt="">
+            </div>
+            <h5 class="mb-1 mt-3">{{user.firstname}} {{user.lastname}}</h5>
+            <p class="mb-1 small text-truncate">
+              <i class="bi bi-envelope me-1"></i>
+              {{user.email}}
+            </p>
+            <p class="mb-2 small">
+              <i class="bi bi-briefcase me-1"></i>
+              {{user.job || 'Non spécifié'}}
+            </p>
+            <p *ngIf="user.location" class="mb-2 small">
+              <i class="bi bi-geo-alt me-1"></i>
+              {{user.location}}
+            </p>
+            <div *ngIf="user.rating" class="mb-3">
+              <span class="badge bg-warning text-dark">
+                {{user.rating}} <i class="bi bi-star-fill"></i>
+              </span>
+            </div>
+            <div class="d-flex justify-content-center gap-2 mt-3">
+              <a (click)="navToDisplay(user.id)" class="btn btn-sm btn-light">Voir</a>
+              <button (click)="navToUpdate(user.id)" class="btn btn-sm btn-primary">Modifier</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+ <div class="d-sm-flex justify-content-between align-items-center mt-4">
+        <p class="mb-sm-0 text-center text-sm-start">Affichage de {{(currentPage - 1) * pageSize + 1}} à {{(currentPage - 1) * pageSize + users.length}} sur {{totalEntries}} entrées</p>
  
         <!-- Pagination -->
         <nav class="mb-sm-0 d-flex justify-content-center" aria-label="navigation">
@@ -266,4 +332,3 @@
     <!-- Pagination END -->
   </div>
   <!-- CARD VIEW END -->
-</div>

@@ -20,4 +20,19 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @Query("select new com.sofrecom.backend.dtos.BookOwerDto(b.owner.email, b.owner.firstname, b.owner.lastname, b.owner.image) from Book b where b.id = :id")
     BookOwerDto findBookOwerByIdBook(@Param("id") Long id);
 
+    @Query("""
+    SELECT b FROM Book b
+    WHERE b.language IN (
+        SELECT lang FROM Preference p JOIN p.preferredLanguages lang WHERE p.user.id = :userId
+    )
+    OR b.category IN (
+        SELECT genre FROM Preference p JOIN p.favoriteGenres genre WHERE p.user.id = :userId
+    )
+    OR b.author IN (
+        SELECT author FROM Preference p JOIN p.favoriteAuthors author WHERE p.user.id = :userId
+    )
+""")
+    List<Book> findBooksMatchingUserPreferences(@Param("userId") Long userId);
+
+
 }

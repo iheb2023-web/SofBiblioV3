@@ -270,7 +270,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
 
-              Stack(
+              /*Stack(
                 children: [
                   const Padding(
                     padding: EdgeInsets.all(10.0),
@@ -292,8 +292,8 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ],
               ),
-
-              const SizedBox(height: 20),
+*/
+             /* const SizedBox(height: 20),
               Text(
                 'sign_in_with_fingerprint'.tr,
                 style: const TextStyle(
@@ -323,7 +323,7 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed: _authenticate,
                     ),
                   ),
-                ),
+                ),*/
             ],
           ),
         ),

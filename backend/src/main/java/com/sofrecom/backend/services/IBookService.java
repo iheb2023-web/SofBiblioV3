@@ -29,4 +29,6 @@ public interface IBookService {
     Book updateBook(Long id, BookUpdateDto BookDto);
 
     public Book AddBookSocket(Book book,String email);
+
+    List<Book> findBooksByUserPreferences(Long userId);
 }

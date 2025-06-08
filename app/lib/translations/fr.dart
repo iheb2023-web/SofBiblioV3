@@ -209,4 +209,9 @@ const Map<String, String> fr = {
   'reset_password': 'Changer votre Mot de passe',
   'edit_review': 'Modifier votre avis',
   'save_changes': 'Confirmer',
+  "search_results": "Résultats de recherche",
+  "results_found": "résultats trouvés",
+  "reset_filters": "Réinitialiser",
+  "view_all": "Voir tout",
+
 };

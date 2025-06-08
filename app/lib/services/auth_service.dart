@@ -1,10 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:app/config/app_config.dart';
 import 'package:app/imports.dart';
 import 'package:app/models/top_borrower.dart';
 import 'package:http/http.dart' as http;
 import 'package:app/models/user_model.dart';
 import 'package:app/services/storage_service.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:mime_type/mime_type.dart'; // This imports MultipartFile and MediaType
 
 class AuthService {
   static final StorageService _storageService = StorageService();
@@ -17,6 +21,50 @@ class AuthService {
       if (token != null) 'Authorization': 'Bearer $token',
     };
   }
+
+Future<String> uploadImage(File imageFile) async {
+  try {
+    // 1. Création de la requête multipart
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${AppConfig.apiBaseUrl}/users/upload'),
+    );
+
+    // 2. Ajout des headers comme dans vos autres méthodes
+    final headers = await getHeaders();
+    request.headers.addAll(headers);
+    
+    // 3. Spécification du type de contenu pour le fichier
+    final mimeType = mime(imageFile.path) ?? 'image/jpeg';
+    final extension = mimeType.split('/').last;
+
+    // 4. Ajout du fichier à la requête
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        imageFile.path,
+        contentType: MediaType('image', extension),
+      ),
+    );
+
+    // 5. Envoi de la requête et conversion de la réponse
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    // 6. Gestion de la réponse selon votre style habituel
+    if (response.statusCode == 200) {
+      return response.body;
+    } else if (response.statusCode == 403) {
+      throw Exception('Accès refusé. Veuillez vérifier vos permissions.');
+    } else {
+      throw Exception('Erreur lors de l\'upload: ${response.statusCode}');
+    }
+  } on SocketException {
+    throw Exception('Erreur de connexion réseau');
+  } catch (e) {
+    throw Exception('Échec de l\'upload: $e');
+  }
+}
 
   Future<Map<String, dynamic>> requestPasswordReset(String email) async {
     final Uri url = Uri.parse(
@@ -253,26 +301,6 @@ class AuthService {
     }
   }
 
-  /// Récupère le top 10 des emprunteurs
-  // Future<List<TopBorrower>> getTop10Borrowers() async {
-  //   try {
-  //     final headers = await getHeaders();
-  //     final response = await http.get(
-  //       Uri.parse('${AppConfig.apiBaseUrl}/users/top10emprunteur'),
-  //       headers: headers,
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       final List<dynamic> data = json.decode(response.body);
-  //       return data.map((item) => TopBorrower.fromJson(item)).toList();
-  //     } else {
-  //       throw Exception('Erreur serveur: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     throw Exception('Erreur réseau: $e');
-  //   }
-  // }
-  // Dans AuthService
   Future<List<TopBorrower>> getTop10Borrowers() async {
     try {
       final headers = await getHeaders();

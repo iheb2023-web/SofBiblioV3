@@ -1,3 +1,4 @@
+import 'package:app/views/explorer/explorer.dart';
 import 'package:get/get.dart';
 import 'package:app/views/NavigationMenu.dart';
 import 'package:app/views/Authentification/onBoardingScreen.dart';
@@ -12,5 +13,6 @@ class AppRoutes {
       page: () => MesDemandesPage(),
       transition: Transition.rightToLeft,
     ),
+    GetPage(name: '/explore', page: () => const ExplorePage()), // Assuming ExplorePage is part of NavigationMenu
   ];
 }
