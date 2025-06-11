@@ -19,16 +19,16 @@ export class TokenInterceptor implements HttpInterceptor {
     if (isPlatformBrowser(this.platformId)) {
       const myToken = this.getCookie('token');  
 
-      // Check if the URL is for a Google API request
-      if (req.url.includes('googleapis.com')) {
-        // If it's a Google API request, remove the Authorization header
+      // Check if the URL is for a Google API request or uses port 6000
+      if (req.url.includes('googleapis.com') || req.url.includes(':8088')) {
+        // If it's a Google API request or port 6000, remove the Authorization header
         const cloneRequest = req.clone({
           headers: req.headers.delete('Authorization') // Remove Authorization header
         });
         return next.handle(cloneRequest);
       }
 
-      // If the request is not to Google APIs, add the Authorization header
+      // If the request is not to Google APIs and not port 6000, add the Authorization header
       if (myToken) {
         const cloneRequest = req.clone({
           setHeaders: {

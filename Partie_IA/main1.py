@@ -1,10 +1,14 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import pandas as pd
 from sqlalchemy import create_engine
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 app = Flask(__name__)
+
+# Enable CORS for all routes and origins
+CORS(app, origins=["*"])
 
 # Configuration de la base de données
 db_url = "mysql+pymysql://root:yNrXkjOdFVPfNoUqmxdGBlYWCuEfEOVV@caboose.proxy.rlwy.net:14050/railway"
@@ -70,4 +74,4 @@ def recommendations_api():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=6000, debug=True)
+    app.run(host='0.0.0.0', port=8088, debug=True)
